@@ -12,7 +12,6 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 public class UptimeCommand extends BaseDiscordCommand
 {
-
     private final long startTime;
 
     public UptimeCommand(Hexalon plugin, long startTime)

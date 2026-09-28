@@ -17,8 +17,8 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 public class ListCommand extends BaseDiscordCommand
 {
-
-    public ListCommand(Hexalon plugin) {
+    public ListCommand(Hexalon plugin)
+    {
         super(plugin, "list", "Utility", Collections.emptyList(), false);
     }
 

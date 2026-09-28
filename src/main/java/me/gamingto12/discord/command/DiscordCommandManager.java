@@ -16,7 +16,6 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 public class DiscordCommandManager
 {
-
     private final Hexalon plugin;
     private final List<DiscordCommand> commands = new ArrayList<>();
 

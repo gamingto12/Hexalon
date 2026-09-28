@@ -18,7 +18,6 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 @Getter
 public abstract class BaseDiscordCommand implements DiscordCommand
 {
-
     private final Hexalon plugin;
     private final String name;
     private final String category;

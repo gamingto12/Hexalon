@@ -1,5 +1,11 @@
 [versions]
 paper-api = "26.2.build.+"
+lombok = "1.18.46"
+log4j-core = "2.24.1"
+jda = "6.7.0"
 
 [libraries]
 paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper-api" }
+lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
+log4j-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j-core" }
+jda = { module = "net.dv8tion:JDA", version.ref = "jda" }

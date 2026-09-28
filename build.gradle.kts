@@ -17,11 +17,10 @@ repositories {
 
 dependencies {
     compileOnly(libs.paper.api)
-    implementation("org.projectlombok:lombok:1.18.46")
-    compileOnly("org.apache.logging.log4j:log4j-core:2.24.1")
-    annotationProcessor("org.projectlombok:lombok:1.18.46")
-    implementation("org.reflections:reflections:0.10.2")
-    implementation("net.dv8tion:JDA:6.5.0")
+    implementation(libs.lombok)
+    compileOnly(libs.log4j.core)
+    annotationProcessor(libs.lombok)
+    implementation(libs.jda)
 }
 
 paper {

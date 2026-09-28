@@ -66,7 +66,8 @@ public class Hexalon extends JavaPlugin
         this.manager = new DiscordCommandManager(this);
         registerDiscordCommands();
 
-        registerMinecraftCommands();
+        getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event ->
+                event.registrar().register("hexalon", "Hexalon plugin commands", new HexalonCMD()));
 
         // Then load listeners (so manager is not null)
         loadListeners();
@@ -92,26 +93,30 @@ public class Hexalon extends JavaPlugin
         }
     }
 
-
-
     @Override
     public void onDisable()
     {
         getSLF4JLogger().info("Disabled Hexalon");
 
-        if (consoleLogger != null) {
+        if (consoleLogger != null)
             consoleLogger.stop();
-        }
 
-        if (discordBot != null && discordBot.getBot() != null) {
+        if (discordBot != null && discordBot.getBot() != null)
+        {
             var channel = discordBot.getChatChannel();
             if (channel != null) {
-                try {
+
+                try
+                {
                     channel.sendMessage("**Server has stopped**").submit().get(5, TimeUnit.SECONDS);
-                } catch (InterruptedException e) {
+                }
+                catch (InterruptedException e)
+                {
                     Thread.currentThread().interrupt();
                     getSLF4JLogger().warn("Interrupted while sending the server-stopped message to Discord", e);
-                } catch (ExecutionException | TimeoutException e) {
+                }
+                catch (ExecutionException | TimeoutException e)
+                {
                     getSLF4JLogger().warn("Could not send the server-stopped message to Discord", e);
                 }
             }
@@ -132,11 +137,5 @@ public class Hexalon extends JavaPlugin
         manager.registerCommand(new HelpCommand(this, manager));
         manager.registerCommand(new UptimeCommand(this, System.currentTimeMillis()));
         manager.registerCommand(new ListCommand(this));
-    }
-
-    public void registerMinecraftCommands()
-    {
-        getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event ->
-                event.registrar().register("hexalon", "Hexalon plugin commands", new HexalonCMD()));
     }
 }

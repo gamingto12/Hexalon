@@ -1,5 +1,24 @@
+#
+# Hexalon Configuration
+#
+# Any and all formats will use Adventure's MiniMessage text formatting system. For more information, visit https://webui.advntr.dev/
+#
+
+# A list of words/phrases to be filtered out
+# If a message contains one of these words, the chat event will be cancelled.
 chat:
   blocked-terms: []
+
+# The main configuration for the bot
+# discord.token = The bot's token, you can make a bot @ https://discord.com/developers/applications
+# discord.format = The format for messages sent to the Minecraft server
+# discord.activity = The bot's status
+# discord.guild-id = The ID to the server where the bot is located
+# discord.channels = The channel IDs for the bot to send messages to
+# discord.adminRoleIds = The list of role IDs to use the AdminConsole command
+# discord.console = Enable/Disable console forwarding
+# discord.prefix = The prefix for executing commands
+# discord.invite = Your server invite link
 discord:
   token: ""
   format: "<dark_gray>[<dark_aqua>Discord</dark_aqua>] <red><author> <dark_gray>» <white><message>"
@@ -16,5 +35,7 @@ discord:
     disallowed-commands: ["op", "deop", "?", "execute"]
   prefix: "!"
   invite:
+
+# The address to your server, this is used to send an embed when someone asks "what is the ip"
 server:
   address: 127.0.0.1

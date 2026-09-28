@@ -13,8 +13,8 @@ import me.gamingto12.minecraft.utilities.BuildProperties;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import org.jspecify.annotations.NonNull;
 
-public class HexalonCMD implements BasicCommand {
-
+public class HexalonCMD implements BasicCommand
+{
     private static final Hexalon plugin = Hexalon.getInstance();
 
     @Override
@@ -43,7 +43,8 @@ public class HexalonCMD implements BasicCommand {
     }
 
     @Override
-    public @NonNull List<String> suggest(@NonNull CommandSourceStack source, String[] args) {
+    public @NonNull List<String> suggest(@NonNull CommandSourceStack source, String[] args)
+    {
 
         if (args.length != 1) return List.of();
         List<String> options = source.getSender().hasPermission("hexalon.admin")

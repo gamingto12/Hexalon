@@ -9,7 +9,6 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.events.session.ShutdownEvent;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
@@ -19,8 +18,6 @@ import java.util.concurrent.TimeUnit;
 public class DiscordBot
 {
     private static final long SHUTDOWN_TIMEOUT_SECONDS = 10;
-    // JDA first resolves this event during websocket shutdown, so load it while the plugin jar is intact.
-    private static final Class<ShutdownEvent> SHUTDOWN_EVENT_CLASS = ShutdownEvent.class;
 
     @Getter
     private JDA bot;

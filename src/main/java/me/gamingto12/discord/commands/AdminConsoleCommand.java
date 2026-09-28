@@ -15,7 +15,6 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 public class AdminConsoleCommand extends BaseDiscordCommand
 {
-
     private final Hexalon plugin;
 
     public AdminConsoleCommand(Hexalon plugin)

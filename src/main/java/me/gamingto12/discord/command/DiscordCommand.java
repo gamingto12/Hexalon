@@ -8,7 +8,6 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 public interface DiscordCommand
 {
-
     /**
      * Checks if the user can execute this command
      */

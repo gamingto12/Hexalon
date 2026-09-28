@@ -21,12 +21,6 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 /**
  * Captures server console/log output by attaching a Log4j2 Appender to the
  * root logger, and relays batched lines to a Discord channel.
- * <p>
- * NOTE: redirecting System.out/System.err does NOT work for this purpose on
- * Paper/Spigot - actual log output (getLogger().info(), warnings, join/quit
- * messages, etc.) goes straight through Log4j2's appenders (TerminalConsoleAppender
- * writes directly to the JLine terminal) and never touches System.out. Hooking
- * a Log4j2 Appender is the only way to see everything that hits the console.
  */
 public class ConsoleLogger extends AbstractAppender
 {
@@ -60,8 +54,6 @@ public class ConsoleLogger extends AbstractAppender
         this.bot = discordBot;
     }
 
-    // ANSI and color codes are supported by Discord, but are omitted here to
-    // keep forwarded console messages readable across clients.
     private static Layout<String> buildLayout()
     {
         // Plain pattern - no Minecraft/ANSI color codes, those don't render in Discord.

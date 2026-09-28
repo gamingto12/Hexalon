@@ -14,7 +14,6 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 public class TPSCommand extends BaseDiscordCommand
 {
-
     public TPSCommand(Hexalon plugin)
     {
         super(plugin, "tps", "Server", List.of(), false);
