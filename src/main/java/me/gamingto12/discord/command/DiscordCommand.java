@@ -1,10 +1,10 @@
 package me.gamingto12.discord.command;
 
+import java.util.List;
+
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-
-import java.util.List;
 
 public interface DiscordCommand
 {
@@ -18,6 +18,12 @@ public interface DiscordCommand
      * Executes the command
      */
     void execute(User user, Guild guild, TextChannel channel, List<String> args);
+
+    default void execute(User user, Guild guild, TextChannel channel, List<String> args,
+                         boolean fromConsoleChannel)
+    {
+        execute(user, guild, channel, args);
+    }
 
     /**
      * The main command name

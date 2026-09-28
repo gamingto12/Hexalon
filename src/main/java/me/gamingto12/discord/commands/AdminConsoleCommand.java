@@ -32,6 +32,13 @@ public class AdminConsoleCommand extends BaseDiscordCommand
     @Override
     public void execute(User user, Guild guild, TextChannel channel, List<String> args)
     {
+        execute(user, guild, channel, args, false);
+    }
+
+    @Override
+    public void execute(User user, Guild guild, TextChannel channel, List<String> args,
+                        boolean fromConsoleChannel)
+    {
         if (!plugin.getConfig().getBoolean("discord.console.enabled", false))
         {
             channel.sendMessageEmbeds(
@@ -74,6 +81,9 @@ public class AdminConsoleCommand extends BaseDiscordCommand
 
         plugin.getSLF4JLogger().info("Discord console command by {} ({}): {}", user.getName(), user.getId(), command);
         boolean accepted = Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+        if (fromConsoleChannel)
+            return;
+
         channel.sendMessageEmbeds(
                 new EmbedBuilder()
                         .setTitle(accepted ? "Command dispatched" : "Command rejected")

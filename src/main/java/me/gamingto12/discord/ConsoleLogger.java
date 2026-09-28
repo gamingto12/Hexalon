@@ -1,20 +1,22 @@
 package me.gamingto12.discord;
 
-import me.gamingto12.Hexalon;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.Layout;
+import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
+import org.apache.logging.log4j.core.config.Property;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.regex.Pattern;
+import me.gamingto12.Hexalon;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 /**
  * Captures server console/log output by attaching a Log4j2 Appender to the
@@ -34,8 +36,9 @@ public class ConsoleLogger extends AbstractAppender
     private static final String CODE_BLOCK_END = "\n```";
     private static final int MAX_LOG_CONTENT_LENGTH = DISCORD_MESSAGE_LIMIT
             - CODE_BLOCK_START.length() - CODE_BLOCK_END.length();
-        private static final Pattern ANSI_FORMATTING = Pattern.compile("\\x1B\\[[0-?]*[ -/]*[@-~]");
-        private static final Pattern MINECRAFT_FORMATTING = Pattern.compile(
+    private static final long MIN_DISCORD_UPDATE_INTERVAL_MILLIS = 1100;
+    private static final Pattern ANSI_FORMATTING = Pattern.compile("\\x1B\\[[0-?]*[ -/]*[@-~]");
+    private static final Pattern MINECRAFT_FORMATTING = Pattern.compile(
             "(?i)§(?:x(?:§[0-9a-f]){6}|[0-9a-fk-or])");
 
     private final Hexalon plugin;
@@ -48,10 +51,11 @@ public class ConsoleLogger extends AbstractAppender
     private Message activeDiscordMessage;
     private String activeMessageBody = "";
     private String activeChannelId;
+    private long lastDiscordUpdateMillis;
 
     public ConsoleLogger(Hexalon plugin, DiscordBot discordBot)
     {
-        super(APPENDER_NAME, null, buildLayout(), true, org.apache.logging.log4j.core.config.Property.EMPTY_ARRAY);
+        super(APPENDER_NAME, null, buildLayout(), true, Property.EMPTY_ARRAY);
         this.plugin = plugin;
         this.bot = discordBot;
     }
@@ -168,7 +172,7 @@ public class ConsoleLogger extends AbstractAppender
         {
             try
             {
-                String line = consoleQueue.poll(500, java.util.concurrent.TimeUnit.MILLISECONDS);
+                String line = consoleQueue.poll(500, TimeUnit.MILLISECONDS);
 
                 if (line != null)
                 {
@@ -243,8 +247,6 @@ public class ConsoleLogger extends AbstractAppender
                     continue;
                 }
 
-                activeDiscordMessage = null;
-                activeMessageBody = "";
                 int offset = 0;
                 boolean continuation = false;
                 while (offset < line.length())
@@ -256,6 +258,14 @@ public class ConsoleLogger extends AbstractAppender
                     continuation = true;
                 }
             }
+
+            sendActiveMessage(channel);
+        }
+        catch (InterruptedException e)
+        {
+            Thread.currentThread().interrupt();
+            activeDiscordMessage = null;
+            activeMessageBody = "";
         }
         catch (Exception e)
         {
@@ -268,26 +278,37 @@ public class ConsoleLogger extends AbstractAppender
         }
     }
 
-    private void appendLine(TextChannel channel, String line)
+    private void appendLine(TextChannel channel, String line) throws InterruptedException
     {
         int separatorLength = activeMessageBody.isEmpty() ? 0 : 1;
         if (activeMessageBody.length() + separatorLength + line.length() > MAX_LOG_CONTENT_LENGTH)
         {
+            sendActiveMessage(channel);
             activeDiscordMessage = null;
             activeMessageBody = "";
-            separatorLength = 0;
         }
 
-        String updatedBody = activeMessageBody.isEmpty()
+        activeMessageBody = activeMessageBody.isEmpty()
                 ? line
                 : activeMessageBody + "\n" + line;
-        String formattedMessage = CODE_BLOCK_START + updatedBody + CODE_BLOCK_END;
+    }
+
+    private void sendActiveMessage(TextChannel channel) throws InterruptedException
+    {
+        if (activeMessageBody.isEmpty())
+            return;
+
+        long waitMillis = MIN_DISCORD_UPDATE_INTERVAL_MILLIS
+                - (System.currentTimeMillis() - lastDiscordUpdateMillis);
+        if (waitMillis > 0)
+            Thread.sleep(waitMillis);
+
+        lastDiscordUpdateMillis = System.currentTimeMillis();
+        String formattedMessage = CODE_BLOCK_START + activeMessageBody + CODE_BLOCK_END;
 
         if (activeDiscordMessage == null)
             activeDiscordMessage = channel.sendMessage(formattedMessage).complete();
         else
             activeDiscordMessage = activeDiscordMessage.editMessage(formattedMessage).complete();
-
-        activeMessageBody = updatedBody;
     }
 }

@@ -35,13 +35,21 @@ public class DiscordCommandManager
 
     public void handleMessage(User user, Guild guild, TextChannel channel, String content)
     {
+        handleMessage(user, guild, channel, content, false);
+    }
+
+    public void handleMessage(User user, Guild guild, TextChannel channel, String content,
+                              boolean fromConsoleChannel)
+    {
         if (user == null || guild == null || channel == null || content == null || content.isBlank())
             return;
 
-        Bukkit.getScheduler().runTask(plugin, () -> handleMessageOnServerThread(user, guild, channel, content));
+        Bukkit.getScheduler().runTask(plugin,
+                () -> handleMessageOnServerThread(user, guild, channel, content, fromConsoleChannel));
     }
 
-    private void handleMessageOnServerThread(User user, Guild guild, TextChannel channel, String content)
+    private void handleMessageOnServerThread(User user, Guild guild, TextChannel channel, String content,
+                                             boolean fromConsoleChannel)
     {
         String prefix = Objects.requireNonNullElse(plugin.getConfig().getString("discord.prefix"), "!");
 
@@ -77,7 +85,7 @@ public class DiscordCommandManager
                     ).queue();
                     return;
                 }
-                command.execute(user, guild, channel, args);
+                command.execute(user, guild, channel, args, fromConsoleChannel);
                 return;
             }
         }

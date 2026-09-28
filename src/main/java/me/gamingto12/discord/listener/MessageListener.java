@@ -80,7 +80,7 @@ public class MessageListener extends ListenerAdapter
         if (!channelId.equals(consoleChannelId) || content.isBlank() || content.startsWith(prefix)) return false;
 
         manager.handleMessage(event.getAuthor(), event.getGuild(), event.getChannel().asTextChannel(),
-                prefix + "console " + content);
+            prefix + "console " + content, true);
         return true;
     }
 
