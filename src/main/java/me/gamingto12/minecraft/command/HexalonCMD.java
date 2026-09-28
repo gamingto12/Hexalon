@@ -15,7 +15,7 @@ import org.jspecify.annotations.NonNull;
 
 public class HexalonCMD implements BasicCommand
 {
-    private static final Hexalon plugin = Hexalon.getInstance();
+    private final Hexalon plugin = Hexalon.getInstance();
 
     @Override
     public void execute(CommandSourceStack source, String[] args)
