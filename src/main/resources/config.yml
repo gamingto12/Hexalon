@@ -7,10 +7,6 @@ discord:
   guild-id: ""
   channels:
     chat-id: ""
-    # Optional: Channel ID for KoolSMPCore admin chat integration
-    admin-id: ""
-    # Optional: Channel ID for KoolSMPCore player reports
-    reports-id: ""
     # Optional: Channel ID for server console logging
     console-id: ""
   adminRoleIds:
