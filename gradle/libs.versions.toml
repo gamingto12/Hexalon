@@ -1,0 +1,5 @@
+[versions]
+paper-api = "26.2.build.+"
+
+[libraries]
+paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper-api" }

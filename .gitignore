@@ -1,0 +1,27 @@
+# Build artifacts
+/build/
+/target/
+*.jar
+*.class
+
+# Gradle
+.gradle/
+gradle-app.setting
+!gradle-wrapper.jar
+.gradletasknamecache
+
+# IDE
+/.idea/
+*.iml
+*.iws
+*.ipr
+/.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+build-number.properties
+/src/main/resources/build.properties
+/*.sh

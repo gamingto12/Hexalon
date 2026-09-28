@@ -1,0 +1,24 @@
+chat:
+  blocked-terms: []
+discord:
+  token: ""
+  format: "<dark_gray>[<dark_aqua>Discord</dark_aqua>] <red><author> <dark_gray>» <white><message>"
+  activity: "koolfreedom.eu.org"
+  guild-id: ""
+  channels:
+    chat-id: ""
+    # Optional: Channel ID for KoolSMPCore admin chat integration
+    admin-id: ""
+    # Optional: Channel ID for KoolSMPCore player reports
+    reports-id: ""
+    # Optional: Channel ID for server console logging
+    console-id: ""
+  adminRoleIds:
+    - ""
+  console:
+    enabled: false
+    disallowed-commands: ["op", "deop", "?", "execute"]
+  prefix: "!"
+  invite:
+server:
+  address: 127.0.0.1
