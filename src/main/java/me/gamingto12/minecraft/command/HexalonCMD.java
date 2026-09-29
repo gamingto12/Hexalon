@@ -38,14 +38,13 @@ public class HexalonCMD implements BasicCommand
                             "invite", Hexalon.getInstance().getConfig().getString("discord.invite", "Not configured"))));
             case "reload" -> reload(sender);
             case "broadcast", "bcast", "bc" -> broadcast(sender, args);
-            default -> sender.sendMessage(plugin.mmDeserialize("<red>Unknown subcommand. Use <white>/kooljda help</white>."));
+            default -> sender.sendMessage(plugin.mmDeserialize("<red>Unknown subcommand. Use <white>/hexalon help</white>."));
         }
     }
 
     @Override
     public @NonNull List<String> suggest(@NonNull CommandSourceStack source, String[] args)
     {
-
         if (args.length != 1) return List.of();
         List<String> options = source.getSender().hasPermission("hexalon.admin")
                 ? List.of("help", "invite", "reload", "broadcast")
