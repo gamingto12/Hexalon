@@ -27,6 +27,7 @@ paper {
     name = "Hexalon"
     version = project.version.toString()
     main = "me.gamingto12.Hexalon"
+    load = BukkitPluginDescription.PluginLoadOrder.POSTWORLD
     apiVersion = "26.2"
     author = "gamingto12"
     description = "Discord bridge plugin"
