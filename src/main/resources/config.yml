@@ -5,7 +5,7 @@
 #
 
 # A list of words/phrases to be filtered out
-# If a message contains one of these words, the chat event will be cancelled.
+# If a message contains one of these words, it will not broadcast to Discord.
 chat:
   blocked-terms: []
 
