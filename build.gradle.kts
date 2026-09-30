@@ -31,7 +31,7 @@ paper {
     apiVersion = "26.2"
     author = "gamingto12"
     description = "Discord bridge plugin"
-    website = "https://gamingto12.is-a.dev"
+    website = "https://gamingto12.me"
     permissions {
         register("hexalon.admin") {
             description = "Plugin for using administrative features"

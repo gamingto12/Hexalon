@@ -1,5 +1,6 @@
 package me.gamingto12.minecraft.command;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -22,10 +23,11 @@ public class HexalonCMD implements BasicCommand
     {
         CommandSender sender = source.getSender();
         if (args.length == 0) {
-            BuildProperties build = Hexalon.getInstance().getBuildMeta();
+            BuildProperties build = plugin.getBuildMeta();
             sender.sendMessage(plugin.mmDeserialize("<gradient:#38d6c8:#8eb8ff><bold>Hexalon</bold></gradient> <dark_gray>•</dark_gray> <gray>Discord bridge"));
             sender.sendMessage(plugin.mmDeserialize("<gray>Version <white>" + build.getVersion() + "." + build.getNumber()));
             sender.sendMessage(plugin.mmDeserialize("<gray>Built <white>" + build.getDate() + " <dark_gray>by</dark_gray> <white>" + build.getAuthor()));
+            sender.sendMessage(plugin.mmDeserialize("<gray>Use <white>/hexalon help</white> for a list of commands"));
             return;
         }
 
@@ -72,8 +74,8 @@ public class HexalonCMD implements BasicCommand
             sender.sendMessage(plugin.mmDeserialize("<red>You do not have permission to execute this command."));
             return;
         }
-        Hexalon.getInstance().reloadConfig();
-        Hexalon.getInstance().getDiscordChatListener().reloadBlockedTerms();
+        plugin.reloadConfig();
+        plugin.getDiscordChatListener().reloadBlockedTerms();
         sender.sendMessage(plugin.mmDeserialize("<green>Configuration reloaded. <gray>Restart to apply Discord connection changes."));
     }
 
@@ -89,13 +91,13 @@ public class HexalonCMD implements BasicCommand
             sender.sendMessage(plugin.mmDeserialize("<red>Usage: <white>/hexalon broadcast <message>"));
             return;
         }
-        TextChannel channel = Hexalon.getInstance().getDiscordBot().getChatChannel();
+        TextChannel channel = plugin.getDiscordBot().getChatChannel();
         if (channel == null)
         {
             sender.sendMessage(plugin.mmDeserialize("<red>Discord chat channel is unavailable."));
             return;
         }
-        channel.sendMessage(String.join(" ", java.util.Arrays.copyOfRange(args, 1, args.length))).queue();
+        channel.sendMessage(String.join(" ", Arrays.copyOfRange(args, 1, args.length))).queue();
         sender.sendMessage(plugin.mmDeserialize("<green>Message sent to Discord."));
     }
 }
