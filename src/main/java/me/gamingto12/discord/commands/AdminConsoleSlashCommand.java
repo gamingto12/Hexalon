@@ -90,12 +90,25 @@ public class AdminConsoleSlashCommand implements DiscordSlashCommand
         plugin.getSLF4JLogger().info("Discord console slash command by {} ({}): {}",
                 event.getUser().getName(), event.getUser().getId(), command);
 
-        boolean accepted = Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
-        event.replyEmbeds(new EmbedBuilder()
-                .setTitle(accepted ? "Command dispatched" : "Command rejected")
-                .setDescription("`" + command + "`")
-                .setColor(accepted ? 0x22C55E : 0xD64545)
-                .setTimestamp(Instant.now())
-                .build()).setEphemeral(true).queue();
+        event.deferReply(true).queue(interaction -> Bukkit.getScheduler().runTask(plugin, () ->
+        {
+            try
+            {
+                boolean accepted = Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+                interaction.editOriginalEmbeds(new EmbedBuilder()
+                        .setTitle(accepted ? "Command dispatched" : "Command rejected")
+                        .setDescription("`" + command + "`")
+                        .setColor(accepted ? 0x22C55E : 0xD64545)
+                        .setTimestamp(Instant.now())
+                        .build())
+                        .queue(null, error -> plugin.getSLF4JLogger().warn("Could not send console command result to Discord", error));
+            }
+            catch (Exception e)
+            {
+                plugin.getSLF4JLogger().error("Failed to dispatch Discord console command '{}'", command, e);
+                interaction.editOriginal("The server command failed to execute.")
+                        .queue(null, error -> plugin.getSLF4JLogger().warn("Could not send console command failure to Discord", error));
+            }
+        }), error -> plugin.getSLF4JLogger().warn("Could not acknowledge Discord console command", error));
     }
 }

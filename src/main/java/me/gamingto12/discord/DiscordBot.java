@@ -1,6 +1,7 @@
 package me.gamingto12.discord;
 
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import lombok.Getter;
 import me.gamingto12.Hexalon;
@@ -12,8 +13,6 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
-
-import java.util.concurrent.TimeUnit;
 
 public class DiscordBot
 {

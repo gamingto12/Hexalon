@@ -12,8 +12,10 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import org.jspecify.annotations.NonNull;
 
 public class DiscordSlashCommandManager extends ListenerAdapter
 {
@@ -45,12 +47,28 @@ public class DiscordSlashCommandManager extends ListenerAdapter
                 .map(DiscordSlashCommand::toCommandData)
                 .toList();
 
-        plugin.getDiscordBot().getBot().updateCommands()
-                .addCommands(commandData)
-                .queue(
-                        success -> plugin.getSLF4JLogger().info("Registered {} slash command(s).", commandData.size()),
-                        error -> plugin.getSLF4JLogger().error("Could not register slash commands.", error)
-                );
+        String guildId = plugin.getConfig().getString("discord.guild-id", "").trim();
+        Guild guild = guildId.isEmpty() ? null : plugin.getDiscordBot().getBot().getGuildById(guildId);
+        if (!guildId.isEmpty() && guild == null)
+        {
+            plugin.getSLF4JLogger().error("Could not register slash commands: configured Discord guild {} is unavailable.", guildId);
+            return;
+        }
+
+        var updateAction = guild == null
+            ? plugin.getDiscordBot().getBot().updateCommands()
+            : guild.updateCommands();
+        updateAction.addCommands(commandData).queue(
+            success -> plugin.getSLF4JLogger().info("Registered {} slash command(s) {}.", commandData.size(),
+                guild == null ? "globally" : "in guild " + guild.getId()),
+            error -> plugin.getSLF4JLogger().error("Could not register slash commands.", error)
+        );
+        }
+
+        @Override
+        public void onReady(@NonNull ReadyEvent event)
+        {
+        registerCommands();
     }
 
     @Override

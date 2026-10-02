@@ -163,6 +163,5 @@ public class Hexalon extends JavaPlugin
         slashCommandManager.registerCommand(new ListSlashCommand(this));
         slashCommandManager.registerCommand(new TPSSlashCommand());
         slashCommandManager.registerCommand(new UptimeSlashCommand(System.currentTimeMillis()));
-        slashCommandManager.registerCommands();
     }
 }
