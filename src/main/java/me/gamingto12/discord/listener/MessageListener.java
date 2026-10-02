@@ -1,10 +1,14 @@
 package me.gamingto12.discord.listener;
 
+import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.bukkit.Bukkit;
+import org.jspecify.annotations.NonNull;
+
 import me.gamingto12.Hexalon;
-import me.gamingto12.discord.command.DiscordCommandManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
@@ -12,7 +16,6 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.jspecify.annotations.NonNull;
 
 public class MessageListener extends ListenerAdapter
 {
@@ -23,12 +26,10 @@ public class MessageListener extends ListenerAdapter
             Pattern.CASE_INSENSITIVE
     );
 
-    private final DiscordCommandManager manager;
     private final Hexalon plugin;
 
-    public MessageListener(DiscordCommandManager manager, Hexalon plugin)
+    public MessageListener(Hexalon plugin)
     {
-        this.manager = manager;
         this.plugin = plugin;
     }
 
@@ -60,7 +61,6 @@ public class MessageListener extends ListenerAdapter
         String consoleChannelId = plugin.getConfig().getString("discord.channels.console-id", "").trim();
 
         if (handleConsoleMessage(event, content, prefix, channelId, consoleChannelId)) return;
-        if (handleCommand(event, content, prefix, channelId, chatChannelId, consoleChannelId)) return;
         if (!channelId.equals(chatChannelId)) return;
 
         broadcastChatMessage(event, content);
@@ -79,18 +79,44 @@ public class MessageListener extends ListenerAdapter
     {
         if (!channelId.equals(consoleChannelId) || content.isBlank() || content.startsWith(prefix)) return false;
 
-        manager.handleMessage(event.getAuthor(), event.getGuild(), event.getChannel().asTextChannel(),
-            prefix + "console " + content, true);
-        return true;
-    }
+        if (!plugin.getConfig().getBoolean("discord.console.enabled", false))
+        {
+            event.getChannel().asTextChannel().sendMessageEmbeds(
+                    new EmbedBuilder()
+                            .setTitle("Console bridge disabled")
+                            .setDescription("Remote console commands are disabled.")
+                            .setColor(0xF59E0B)
+                            .build()
+            ).queue();
+            return true;
+        }
 
-    private boolean handleCommand(MessageReceivedEvent event, String content, String prefix, String channelId,
-                                  String chatChannelId, String consoleChannelId)
-    {
-        if (!content.startsWith(prefix)) return false;
-        if (!channelId.equals(chatChannelId) && !channelId.equals(consoleChannelId)) return true;
+        String command = content.trim();
+        String root = command.split("\\s+")[0].toLowerCase(Locale.ROOT);
+        List<String> blocked = plugin.getConfig().getStringList("discord.console.disallowed-commands");
+        if (blocked.stream().anyMatch(value -> value.equalsIgnoreCase(root)))
+        {
+            event.getChannel().asTextChannel().sendMessageEmbeds(
+                    new EmbedBuilder()
+                            .setTitle("Blocked command")
+                            .setDescription("That command is not allowed through the Discord console bridge.")
+                            .setColor(0xD64545)
+                            .build()
+            ).queue();
+            return true;
+        }
 
-        manager.handleMessage(event.getAuthor(), event.getGuild(), event.getChannel().asTextChannel(), content);
+        plugin.getSLF4JLogger().info("Discord console command by {} ({}): {}",
+                event.getAuthor().getName(), event.getAuthor().getId(), command);
+
+        boolean accepted = Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+        event.getChannel().asTextChannel().sendMessageEmbeds(
+                new EmbedBuilder()
+                        .setTitle(accepted ? "Command dispatched" : "Command rejected")
+                        .setDescription("`" + command + "`")
+                        .setColor(accepted ? 0x22C55E : 0xD64545)
+                        .build()
+        ).queue();
         return true;
     }
 
