@@ -21,6 +21,7 @@ dependencies {
     compileOnly(libs.log4j.core)
     annotationProcessor(libs.lombok)
     implementation(libs.jda)
+    implementation(libs.bstats)
 }
 
 paper {
@@ -76,6 +77,7 @@ tasks {
     shadowJar {
         archiveClassifier.set("")
         finalizedBy("incrementBuildNumber")
+        relocate("org.bstats", "me.gamingto12.libs.bstats")
     }
 
     assemble {

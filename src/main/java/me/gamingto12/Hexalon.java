@@ -4,6 +4,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
@@ -62,6 +63,8 @@ public class Hexalon extends JavaPlugin
             loadListeners();
             getServer().getPluginManager().registerEvents(discordChatListener, this);
             startDiscordBridgeIfConfigured();
+            new Metrics(this, 34451);
+            getSLF4JLogger().info("Enabled Metrics");
             getSLF4JLogger().info("Hexalon enabled successfully.");
         }
         catch (Exception e)
