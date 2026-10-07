@@ -84,7 +84,7 @@ public class Hexalon extends JavaPlugin
 
         if (discordBot != null && discordBot.getBot() != null)
         {
-            sendDiscordStatusMessage("**Server has stopped**");
+            sendDiscordStatusMessage();
             discordBot.stop();
         }
     }
@@ -124,7 +124,7 @@ public class Hexalon extends JavaPlugin
         }
     }
 
-    private void sendDiscordStatusMessage(String message)
+    private void sendDiscordStatusMessage()
     {
         if (discordBot == null || discordBot.getBot() == null)
             return;
@@ -135,7 +135,7 @@ public class Hexalon extends JavaPlugin
 
         try
         {
-            channel.sendMessage(message).submit().get(5, TimeUnit.SECONDS);
+            channel.sendMessage("**Server has stopped**").submit().get(5, TimeUnit.SECONDS);
         }
         catch (InterruptedException e)
         {
@@ -160,7 +160,7 @@ public class Hexalon extends JavaPlugin
             return;
 
         slashCommandManager.registerCommand(new AdminConsoleSlashCommand(this));
-        slashCommandManager.registerCommand(new ListSlashCommand(this));
+        slashCommandManager.registerCommand(new ListSlashCommand());
         slashCommandManager.registerCommand(new TPSSlashCommand());
         slashCommandManager.registerCommand(new UptimeSlashCommand(System.currentTimeMillis()));
     }

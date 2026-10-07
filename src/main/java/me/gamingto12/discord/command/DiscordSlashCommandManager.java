@@ -63,11 +63,11 @@ public class DiscordSlashCommandManager extends ListenerAdapter
                 guild == null ? "globally" : "in guild " + guild.getId()),
             error -> plugin.getSLF4JLogger().error("Could not register slash commands.", error)
         );
-        }
+    }
 
-        @Override
-        public void onReady(@NonNull ReadyEvent event)
-        {
+    @Override
+    public void onReady(@NonNull ReadyEvent event)
+    {
         registerCommands();
     }
 

@@ -6,19 +6,13 @@ import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import me.gamingto12.Hexalon;
 import me.gamingto12.discord.command.DiscordSlashCommand;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 public class ListSlashCommand implements DiscordSlashCommand
 {
-    private final Hexalon plugin;
-
-    public ListSlashCommand(Hexalon plugin)
-    {
-        this.plugin = plugin;
-    }
+    public ListSlashCommand() {}
 
     @Override
     public String getName()

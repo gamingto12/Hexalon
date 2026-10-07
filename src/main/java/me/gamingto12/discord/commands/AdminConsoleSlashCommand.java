@@ -10,6 +10,7 @@ import me.gamingto12.Hexalon;
 import me.gamingto12.discord.command.DiscordSlashCommand;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -62,7 +63,7 @@ public class AdminConsoleSlashCommand implements DiscordSlashCommand
             return;
         }
 
-        String command = event.getOption("command", null, option -> option.getAsString()).trim();
+        String command = event.getOption("command", null, OptionMapping::getAsString).trim();
         if (command.isBlank())
         {
             event.replyEmbeds(new EmbedBuilder()
