@@ -20,6 +20,7 @@ import me.gamingto12.discord.listener.ChatListener;
 import me.gamingto12.discord.listener.MessageListener;
 import me.gamingto12.minecraft.command.HexalonCMD;
 import me.gamingto12.minecraft.utilities.BuildProperties;
+import me.gamingto12.minecraft.utilities.UpdateChecker;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
@@ -65,6 +66,7 @@ public class Hexalon extends JavaPlugin
             startDiscordBridgeIfConfigured();
             new Metrics(this, 34451);
             getSLF4JLogger().info("Enabled Metrics");
+            new UpdateChecker(this).checkForUpdates();
             getSLF4JLogger().info("Hexalon enabled successfully.");
         }
         catch (Exception e)

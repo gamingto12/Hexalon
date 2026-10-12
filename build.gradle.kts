@@ -75,7 +75,7 @@ tasks {
     }
 
     shadowJar {
-        archiveClassifier.set("")
+        archiveFileName.set("Hexalon.jar")
         finalizedBy("incrementBuildNumber")
         relocate("org.bstats", "me.gamingto12.libs.bstats")
     }
