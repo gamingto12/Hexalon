@@ -93,7 +93,7 @@ public class Hexalon extends JavaPlugin
 
     private void initializeCoreServices()
     {
-        this.discordBot = new DiscordBot();
+        this.discordBot = new DiscordBot(this);
         this.consoleLogger = new ConsoleLogger(this, discordBot);
         this.consoleLogger.start();
 
@@ -152,7 +152,7 @@ public class Hexalon extends JavaPlugin
 
     public void loadListeners()
     {
-        discordChatListener = new ChatListener();
+        discordChatListener = new ChatListener(this);
         messageListener = new MessageListener(this);
     }
 

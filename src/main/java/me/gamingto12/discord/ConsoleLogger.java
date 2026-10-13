@@ -1,7 +1,8 @@
 package me.gamingto12.discord;
 
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
@@ -31,6 +32,7 @@ public class ConsoleLogger extends AbstractAppender
     private static final int MAX_LOG_CONTENT_LENGTH = DISCORD_MESSAGE_LIMIT
             - CODE_BLOCK_START.length() - CODE_BLOCK_END.length();
     private static final long MIN_DISCORD_UPDATE_INTERVAL_MILLIS = 1100;
+    private static final int MAX_QUEUED_LINES = 4096;
     private static final Pattern ANSI_FORMATTING = Pattern.compile("\\x1B\\[[0-?]*[ -/]*[@-~]");
     private static final Pattern MINECRAFT_FORMATTING = Pattern.compile(
             "(?i)§(?:x(?:§[0-9a-f]){6}|[0-9a-fk-or])");
@@ -38,7 +40,8 @@ public class ConsoleLogger extends AbstractAppender
     private final Hexalon plugin;
     private final DiscordBot bot;
 
-    private final LinkedBlockingQueue<String> consoleQueue = new LinkedBlockingQueue<>();
+    private final ArrayBlockingQueue<String> consoleQueue = new ArrayBlockingQueue<>(MAX_QUEUED_LINES);
+    private final AtomicLong droppedLineCount = new AtomicLong();
 
     private Thread consoleThread;
     private volatile boolean running = false;
@@ -76,13 +79,7 @@ public class ConsoleLogger extends AbstractAppender
         LoggerContext context = (LoggerContext) LogManager.getContext(false);
         Configuration config = context.getConfiguration();
 
-        // Attach ourselves to every logger config so we see everything the
-        // console sees (this mirrors what TerminalConsoleAppender receives).
-        for (LoggerConfig loggerConfig : config.getLoggers().values())
-        {
-            loggerConfig.addAppender(this, null, null);
-        }
-        config.getRootLogger().addAppender(this, null, null);
+        updateLoggerAttachments(config, true);
         context.updateLoggers();
 
         consoleThread = new Thread(this::processConsoleQueue, "KoolJDA-Console-Logger");
@@ -104,11 +101,7 @@ public class ConsoleLogger extends AbstractAppender
 
         LoggerContext context = (LoggerContext) LogManager.getContext(false);
         Configuration config = context.getConfiguration();
-        for (LoggerConfig loggerConfig : config.getLoggers().values())
-        {
-            loggerConfig.removeAppender(APPENDER_NAME);
-        }
-        config.getRootLogger().removeAppender(APPENDER_NAME);
+        updateLoggerAttachments(config, false);
         context.updateLoggers();
 
         super.stop();
@@ -148,8 +141,27 @@ public class ConsoleLogger extends AbstractAppender
         String formatted = getLayout().toSerializable(event).toString().stripTrailing();
         formatted = ANSI_FORMATTING.matcher(formatted).replaceAll("");
         formatted = MINECRAFT_FORMATTING.matcher(formatted).replaceAll("");
-        if (!formatted.isEmpty())
-            consoleQueue.offer(formatted);
+        if (!formatted.isEmpty() && !consoleQueue.offer(formatted))
+            droppedLineCount.incrementAndGet();
+    }
+
+    private void updateLoggerAttachments(Configuration config, boolean attach)
+    {
+        for (LoggerConfig loggerConfig : config.getLoggers().values())
+        {
+            if (loggerConfig.isAdditive())
+                continue;
+
+            if (attach)
+                loggerConfig.addAppender(this, null, null);
+            else
+                loggerConfig.removeAppender(APPENDER_NAME);
+        }
+
+        if (attach)
+            config.getRootLogger().addAppender(this, null, null);
+        else
+            config.getRootLogger().removeAppender(APPENDER_NAME);
     }
 
     /**
@@ -160,16 +172,26 @@ public class ConsoleLogger extends AbstractAppender
         StringBuilder batch = new StringBuilder();
         int lineCount = 0;
 
-        while (running || !consoleQueue.isEmpty())
+        while (running || !consoleQueue.isEmpty() || droppedLineCount.get() > 0)
         {
             try
             {
                 String line = consoleQueue.poll(500, TimeUnit.MILLISECONDS);
+                long droppedLines = droppedLineCount.getAndSet(0);
+
+                if (droppedLines > 0)
+                {
+                    if (!batch.isEmpty())
+                        batch.append('\n');
+                    batch.append("[Hexalon] Dropped ").append(droppedLines)
+                            .append(" console log line(s) because the Discord queue was full");
+                    lineCount++;
+                }
 
                 if (line != null)
                 {
                     if (!batch.isEmpty())
-                        batch.append("\n");
+                        batch.append('\n');
 
                     batch.append(line);
                     lineCount++;
@@ -190,11 +212,8 @@ public class ConsoleLogger extends AbstractAppender
                     lineCount = 0;
                 }
             }
-            catch (InterruptedException e)
+            catch (InterruptedException ignored)
             {
-                Thread.currentThread().interrupt();
-                if (!running)
-                    break;
             }
             catch (Exception e)
             {

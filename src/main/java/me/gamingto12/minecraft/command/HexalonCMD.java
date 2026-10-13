@@ -75,13 +75,13 @@ public class HexalonCMD implements BasicCommand
             return;
         }
         plugin.reloadConfig();
-        plugin.getDiscordChatListener().reloadBlockedTerms();
         sender.sendMessage(plugin.mmDeserialize("<green>Configuration reloaded. <gray>Restart to apply Discord connection changes."));
     }
 
     private void broadcast(CommandSender sender, String[] args)
     {
-        if (!sender.hasPermission("hexalon.admin")) {
+        if (!sender.hasPermission("hexalon.admin"))
+        {
 
             sender.sendMessage(plugin.mmDeserialize("<red>You do not have permission to execute this command."));
             return;

@@ -1,6 +1,7 @@
 package me.gamingto12.discord.commands;
 
 import java.time.Instant;
+import java.util.Locale;
 
 import org.bukkit.Bukkit;
 
@@ -28,9 +29,8 @@ public class TPSSlashCommand implements DiscordSlashCommand
         double[] tps = Bukkit.getServer().getTPS();
         event.replyEmbeds(new EmbedBuilder()
                 .setTitle("Server TPS")
-                .setDescription("**1m:** " + String.format("%.2f", tps[0]) + "\n"
-                        + "**5m:** " + String.format("%.2f", tps[1]) + "\n"
-                        + "**15m:** " + String.format("%.2f", tps[2]))
+            .setDescription(String.format(Locale.ROOT,
+                "**1m:** %.2f\n**5m:** %.2f\n**15m:** %.2f", tps[0], tps[1], tps[2]))
                 .setColor(0x3B82F6)
                 .setTimestamp(Instant.now())
                 .build()).queue();

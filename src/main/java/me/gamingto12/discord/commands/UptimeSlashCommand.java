@@ -1,6 +1,7 @@
 package me.gamingto12.discord.commands;
 
 import java.time.Instant;
+import java.time.Duration;
 
 import me.gamingto12.discord.command.DiscordSlashCommand;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -30,11 +31,11 @@ public class UptimeSlashCommand implements DiscordSlashCommand
     @Override
     public void execute(SlashCommandInteractionEvent event)
     {
-        long uptimeMillis = System.currentTimeMillis() - startTime;
-        long seconds = uptimeMillis / 1000 % 60;
-        long minutes = uptimeMillis / (1000 * 60) % 60;
-        long hours = uptimeMillis / (1000 * 60 * 60) % 24;
-        long days = uptimeMillis / (1000 * 60 * 60 * 24);
+        Duration uptime = Duration.ofMillis(Math.max(0, System.currentTimeMillis() - startTime));
+        long days = uptime.toDays();
+        long hours = uptime.toHoursPart();
+        long minutes = uptime.toMinutesPart();
+        long seconds = uptime.toSecondsPart();
 
         event.replyEmbeds(new EmbedBuilder()
                 .setTitle("Server uptime")

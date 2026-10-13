@@ -18,17 +18,24 @@ public class DiscordBot
 {
     private static final long SHUTDOWN_TIMEOUT_SECONDS = 10;
 
-    @Getter
-    private JDA bot;
+    private final Hexalon plugin;
 
-    public void start(Object... listeners)
+    @Getter
+    private volatile JDA bot;
+
+    public DiscordBot(Hexalon plugin)
+    {
+        this.plugin = plugin;
+    }
+
+    public synchronized void start(Object... listeners)
     {
         if (bot != null && bot.getStatus() != JDA.Status.SHUTDOWN)
         {
             stop();
         }
 
-        String token = getToken();
+        String token = plugin.getConfig().getString("discord.token", "");
         if (token == null || token.isBlank())
         {
             throw new IllegalStateException("Discord token is missing from config.yml");
@@ -51,7 +58,7 @@ public class DiscordBot
         builder.setMemberCachePolicy(MemberCachePolicy.ALL);
         builder.enableCache(CacheFlag.ROLE_TAGS);
         builder.setActivity(Activity.watching(Objects.requireNonNullElse(
-            Hexalon.getInstance().getConfig().getString("discord.activity"), "")));
+            plugin.getConfig().getString("discord.activity"), "")));
 
         builder.addEventListeners(listeners);
 
@@ -62,13 +69,13 @@ public class DiscordBot
         catch (Exception e)
         {
             bot = null;
-            Hexalon.getInstance().getSLF4JLogger().error(
+            plugin.getSLF4JLogger().error(
                     "Failed to start the Discord bot; please verify the token and network configuration.", e);
             throw new IllegalStateException("Unable to start the Discord bot.", e);
         }
     }
 
-    public void stop()
+    public synchronized void stop()
     {
         JDA currentBot = bot;
         if (currentBot == null)
@@ -79,12 +86,12 @@ public class DiscordBot
             currentBot.shutdown();
             if (!currentBot.awaitShutdown(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS))
             {
-                Hexalon.getInstance().getSLF4JLogger().warn(
+                plugin.getSLF4JLogger().warn(
                         "JDA did not shut down gracefully; forcing shutdown.");
                 currentBot.shutdownNow();
                 if (!currentBot.awaitShutdown(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS))
                 {
-                    Hexalon.getInstance().getSLF4JLogger().error(
+                    plugin.getSLF4JLogger().error(
                             "JDA did not stop within the shutdown timeout; continuing plugin shutdown.");
                 }
             }
@@ -93,12 +100,12 @@ public class DiscordBot
         {
             currentBot.shutdownNow();
             Thread.currentThread().interrupt();
-            Hexalon.getInstance().getSLF4JLogger().warn(
+            plugin.getSLF4JLogger().warn(
                     "Interrupted while waiting for JDA to stop; forced shutdown was requested.", e);
         }
         catch (Exception e)
         {
-            Hexalon.getInstance().getSLF4JLogger().warn(
+            plugin.getSLF4JLogger().warn(
                     "Unexpected error while shutting down JDA.", e);
         }
         finally
@@ -124,19 +131,14 @@ public class DiscordBot
         return bot.getTextChannelById(channelId.trim());
     }
 
-    private String getToken()
-    {
-        return Hexalon.getInstance().getConfig().getString("discord.token", "");
-    }
-
     private String getGuildID()
     {
-        return Hexalon.getInstance().getConfig().getString("discord.guild-id", "");
+        return plugin.getConfig().getString("discord.guild-id", "");
     }
 
     private String getChatChannelID()
     {
-        Object channelId = Hexalon.getInstance().getConfig().get("discord.channels.chat-id");
+        Object channelId = plugin.getConfig().get("discord.channels.chat-id");
         return channelId == null ? "" : String.valueOf(channelId).trim();
     }
 }

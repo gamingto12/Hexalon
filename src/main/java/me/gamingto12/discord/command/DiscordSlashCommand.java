@@ -13,17 +13,20 @@ public interface DiscordSlashCommand
 
     String getDescription();
 
-    default List<OptionData> getOptions() {
+    default List<OptionData> getOptions()
+    {
         return List.of();
     }
 
-    default boolean isAdminOnly() {
+    default boolean isAdminOnly()
+    {
         return false;
     }
 
     void execute(SlashCommandInteractionEvent event);
 
-    default CommandData toCommandData() {
+    default CommandData toCommandData()
+    {
         return Commands.slash(getName(), getDescription()).addOptions(getOptions());
     }
 }

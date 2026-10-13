@@ -1,13 +1,9 @@
 #
 # Hexalon Configuration
 #
-# Any and all formats will use Adventure's MiniMessage text formatting system. For more information, visit https://webui.advntr.dev/
+# Any and all formats will use Adventure's MiniMessage text formatting system. For more information and to test out MiniMessage formatted text,
+#   visit https://webui.advntr.dev/
 #
-
-# A list of words/phrases to be filtered out
-# If a message contains one of these words, it will not broadcast to Discord.
-chat:
-  blocked-terms: []
 
 # The main configuration for the bot
 # discord.token = The bot's token, you can make a bot @ https://discord.com/developers/applications

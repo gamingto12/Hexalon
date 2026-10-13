@@ -1,19 +1,16 @@
 package me.gamingto12.discord.commands;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-
 import me.gamingto12.discord.command.DiscordSlashCommand;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 public class ListSlashCommand implements DiscordSlashCommand
 {
-    public ListSlashCommand() {}
-
     @Override
     public String getName()
     {
@@ -29,10 +26,11 @@ public class ListSlashCommand implements DiscordSlashCommand
     @Override
     public void execute(SlashCommandInteractionEvent event)
     {
-        int online = Bukkit.getOnlinePlayers().size();
+        Collection<? extends org.bukkit.entity.Player> players = Bukkit.getOnlinePlayers();
+        int online = players.size();
         int max = Bukkit.getMaxPlayers();
-        String playerList = Bukkit.getOnlinePlayers().stream()
-                .map(Player::getName)
+        String playerList = players.stream()
+            .map(org.bukkit.entity.Player::getName)
                 .collect(Collectors.joining(", "));
 
         if (playerList.isBlank())

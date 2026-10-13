@@ -1,10 +1,12 @@
 package me.gamingto12.discord.command;
 
 import java.time.Instant;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import org.bukkit.Bukkit;
 
 import me.gamingto12.Hexalon;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -20,7 +22,7 @@ import org.jspecify.annotations.NonNull;
 public class DiscordSlashCommandManager extends ListenerAdapter
 {
     private final Hexalon plugin;
-    private final Map<String, DiscordSlashCommand> commands = new HashMap<>();
+    private final Map<String, DiscordSlashCommand> commands = new LinkedHashMap<>();
 
     public DiscordSlashCommandManager(Hexalon plugin)
     {
@@ -35,7 +37,13 @@ public class DiscordSlashCommandManager extends ListenerAdapter
             return;
         }
 
-        commands.put(command.getName().trim().toLowerCase(Locale.ROOT), command);
+        String name = command.getName().trim().toLowerCase(Locale.ROOT);
+        if (name.isEmpty() || commands.containsKey(name))
+        {
+            plugin.getSLF4JLogger().warn("Skipped duplicate or unnamed Discord slash command '{}'.", name);
+            return;
+        }
+        commands.put(name, command);
     }
 
     public void registerCommands()
@@ -56,12 +64,12 @@ public class DiscordSlashCommandManager extends ListenerAdapter
         }
 
         var updateAction = guild == null
-            ? plugin.getDiscordBot().getBot().updateCommands()
-            : guild.updateCommands();
+                ? plugin.getDiscordBot().getBot().updateCommands()
+                : guild.updateCommands();
         updateAction.addCommands(commandData).queue(
-            success -> plugin.getSLF4JLogger().info("Registered {} slash command(s) {}.", commandData.size(),
-                guild == null ? "globally" : "in guild " + guild.getId()),
-            error -> plugin.getSLF4JLogger().error("Could not register slash commands.", error)
+                success -> plugin.getSLF4JLogger().info("Registered {} slash command(s) {}.", commandData.size(),
+                        guild == null ? "globally" : "in guild " + guild.getId()),
+                error -> plugin.getSLF4JLogger().error("Could not register slash commands.", error)
         );
     }
 
@@ -91,21 +99,29 @@ public class DiscordSlashCommandManager extends ListenerAdapter
             return;
         }
 
+        Bukkit.getScheduler().runTask(plugin, () -> executeOnServerThread(command, event));
+    }
+
+    private void executeOnServerThread(DiscordSlashCommand command, SlashCommandInteractionEvent event)
+    {
         try
         {
             command.execute(event);
         }
-        catch (Exception e)
+        catch (Exception error)
         {
-            plugin.getSLF4JLogger().error("Error while executing slash command '{}'", command.getName(), e);
-            event.replyEmbeds(new EmbedBuilder()
+            plugin.getSLF4JLogger().error("Error while executing slash command '{}'", command.getName(), error);
+            var failure = new EmbedBuilder()
                     .setTitle("Command failed")
                     .setDescription("An unexpected error occurred while running that command.")
                     .setColor(0xD64545)
                     .setTimestamp(Instant.now())
-                    .build())
-                    .setEphemeral(true)
-                    .queue();
+                    .build();
+
+            if (event.isAcknowledged())
+                event.getHook().sendMessageEmbeds(failure).setEphemeral(true).queue();
+            else
+                event.replyEmbeds(failure).setEphemeral(true).queue();
         }
     }
 

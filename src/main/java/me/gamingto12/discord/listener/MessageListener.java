@@ -1,14 +1,12 @@
 package me.gamingto12.discord.listener;
 
-import java.util.List;
-import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.bukkit.Bukkit;
 import org.jspecify.annotations.NonNull;
 
 import me.gamingto12.Hexalon;
+import me.gamingto12.discord.command.ConsoleCommandService;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
@@ -27,10 +25,12 @@ public class MessageListener extends ListenerAdapter
     );
 
     private final Hexalon plugin;
+    private final ConsoleCommandService consoleCommands;
 
     public MessageListener(Hexalon plugin)
     {
         this.plugin = plugin;
+        this.consoleCommands = new ConsoleCommandService(plugin);
     }
 
     @Override
@@ -77,59 +77,63 @@ public class MessageListener extends ListenerAdapter
     private boolean handleConsoleMessage(MessageReceivedEvent event, String content, String prefix,
                                          String channelId, String consoleChannelId)
     {
-        if (!channelId.equals(consoleChannelId) || content.isBlank() || content.startsWith(prefix)) return false;
+        if (!channelId.equals(consoleChannelId) || content.isBlank()
+                || (!prefix.isBlank() && content.startsWith(prefix))) return false;
 
-        if (!plugin.getConfig().getBoolean("discord.console.enabled", false))
+        ConsoleCommandService.Validation validation = consoleCommands.validate(content);
+        if (!validation.isAccepted())
         {
-            event.getChannel().asTextChannel().sendMessageEmbeds(
-                    new EmbedBuilder()
-                            .setTitle("Console bridge disabled")
-                            .setDescription("Remote console commands are disabled.")
-                            .setColor(0xF59E0B)
-                            .build()
-            ).queue();
+            sendConsoleRejection(event, validation.rejection());
             return true;
         }
 
-        String command = content.trim();
-        String root = command.split("\\s+")[0].toLowerCase(Locale.ROOT);
-        List<String> blocked = plugin.getConfig().getStringList("discord.console.disallowed-commands");
-        if (blocked.stream().anyMatch(value -> value.equalsIgnoreCase(root)))
+        String command = validation.command();
+        consoleCommands.dispatch(command, result ->
         {
-            event.getChannel().asTextChannel().sendMessageEmbeds(
-                    new EmbedBuilder()
-                            .setTitle("Blocked command")
-                            .setDescription("That command is not allowed through the Discord console bridge.")
-                            .setColor(0xD64545)
-                            .build()
-            ).queue();
-            return true;
-        }
-
-        plugin.getSLF4JLogger().info("Discord console command by {} ({}): {}",
-                event.getAuthor().getName(), event.getAuthor().getId(), command);
-
-        Bukkit.getScheduler().runTask(plugin, () ->
-        {
-            try
+            if (result.hasError())
             {
-            boolean accepted = Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
-            event.getChannel().asTextChannel().sendMessageEmbeds(
-                new EmbedBuilder()
-                    .setTitle(accepted ? "Command dispatched" : "Command rejected")
-                    .setDescription("`" + command + "`")
-                    .setColor(accepted ? 0x22C55E : 0xD64545)
-                    .build()
-            ).queue(null, error -> plugin.getSLF4JLogger().warn("Could not send console command result to Discord", error));
+                plugin.getSLF4JLogger().error("Failed to dispatch Discord console command '{}'", command, result.error());
+                event.getChannel().sendMessage("The server command failed to execute.")
+                        .queue(null, error -> plugin.getSLF4JLogger().warn("Could not send console command failure to Discord", error));
             }
-            catch (Exception e)
+            else
             {
-            plugin.getSLF4JLogger().error("Failed to dispatch Discord console command '{}'", command, e);
-            event.getChannel().sendMessage("The server command failed to execute.")
-                .queue(null, error -> plugin.getSLF4JLogger().warn("Could not send console command failure to Discord", error));
+                sendConsoleResult(event, command, result.accepted());
             }
         });
         return true;
+    }
+
+    private void sendConsoleRejection(MessageReceivedEvent event, ConsoleCommandService.Rejection rejection)
+    {
+        String title = switch (rejection)
+        {
+            case DISABLED -> "Console bridge disabled";
+            case MISSING -> "Missing command";
+            case BLOCKED -> "Blocked command";
+        };
+        String description = switch (rejection)
+        {
+            case DISABLED -> "Remote console commands are disabled.";
+            case MISSING -> "You must provide a command to execute.";
+            case BLOCKED -> "That command is not allowed through the Discord console bridge.";
+        };
+        int color = rejection == ConsoleCommandService.Rejection.DISABLED ? 0xF59E0B : 0xD64545;
+        event.getChannel().asTextChannel().sendMessageEmbeds(new EmbedBuilder()
+                .setTitle(title)
+                .setDescription(description)
+                .setColor(color)
+                .build()).queue();
+    }
+
+    private void sendConsoleResult(MessageReceivedEvent event, String command, boolean accepted)
+    {
+        event.getChannel().asTextChannel().sendMessageEmbeds(new EmbedBuilder()
+                .setTitle(accepted ? "Command dispatched" : "Command rejected")
+                .setDescription("`" + command + "`")
+                .setColor(accepted ? 0x22C55E : 0xD64545)
+                .build()).queue(null, error ->
+                plugin.getSLF4JLogger().warn("Could not send console command result to Discord", error));
     }
 
     private void broadcastChatMessage(MessageReceivedEvent event, String content)
