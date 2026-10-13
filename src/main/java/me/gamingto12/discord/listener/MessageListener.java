@@ -109,14 +109,26 @@ public class MessageListener extends ListenerAdapter
         plugin.getSLF4JLogger().info("Discord console command by {} ({}): {}",
                 event.getAuthor().getName(), event.getAuthor().getId(), command);
 
-        boolean accepted = Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
-        event.getChannel().asTextChannel().sendMessageEmbeds(
+        Bukkit.getScheduler().runTask(plugin, () ->
+        {
+            try
+            {
+            boolean accepted = Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+            event.getChannel().asTextChannel().sendMessageEmbeds(
                 new EmbedBuilder()
-                        .setTitle(accepted ? "Command dispatched" : "Command rejected")
-                        .setDescription("`" + command + "`")
-                        .setColor(accepted ? 0x22C55E : 0xD64545)
-                        .build()
-        ).queue();
+                    .setTitle(accepted ? "Command dispatched" : "Command rejected")
+                    .setDescription("`" + command + "`")
+                    .setColor(accepted ? 0x22C55E : 0xD64545)
+                    .build()
+            ).queue(null, error -> plugin.getSLF4JLogger().warn("Could not send console command result to Discord", error));
+            }
+            catch (Exception e)
+            {
+            plugin.getSLF4JLogger().error("Failed to dispatch Discord console command '{}'", command, e);
+            event.getChannel().sendMessage("The server command failed to execute.")
+                .queue(null, error -> plugin.getSLF4JLogger().warn("Could not send console command failure to Discord", error));
+            }
+        });
         return true;
     }
 
