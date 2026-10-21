@@ -61,7 +61,7 @@ public class Hexalon extends JavaPlugin
     {
         try
         {
-            buildMeta = new BuildProperties();
+            buildMeta = new BuildProperties(this);
             getConfig().options().copyDefaults(true);
             saveConfig();
 

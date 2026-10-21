@@ -15,21 +15,23 @@ public class BuildProperties extends Properties
     private final String number;
     private final String date;
 
-    public BuildProperties()
+    public BuildProperties(Hexalon plugin)
     {
         super();
 
-        try (InputStream in = Hexalon.class.getClassLoader().getResourceAsStream("build.properties"))
+        try (InputStream in = plugin.getResource("build.properties"))
         {
             if (in != null)
                 load(in);
+            else
+                plugin.getSLF4JLogger().warn("Could not find build.properties; using plugin metadata defaults.");
         }
         catch (IOException ignored)
         {
         }
 
         author = getProperty("buildAuthor", "unknown");
-        version = getProperty("buildVersion", "4.2.4");
+        version = getProperty("buildVersion", plugin.getPluginMeta().getVersion());
         number = getProperty("buildNumber", "1");
         date = getProperty("buildDate", "unknown");
     }
