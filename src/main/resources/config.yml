@@ -7,7 +7,7 @@
 
 # The main configuration for the bot
 # discord.token = The bot's token, you can make a bot @ https://discord.com/developers/applications
-# discord.format = The format for messages sent to the Minecraft server
+# discord.format = The format for messages sent to the Minecraft server; supports <role>, <author>, and <message>
 # discord.activity = The bot's status
 # discord.guild-id = The ID to the server where the bot is located
 # discord.channels = The channel IDs for the bot to send messages to
@@ -17,7 +17,7 @@
 # discord.invite = Your server invite link
 discord:
   token: ""
-  format: "<dark_gray>[<dark_aqua>Discord</dark_aqua>] <red><author> <dark_gray>» <white><message>"
+  format: "<dark_gray>[<dark_aqua>Discord</dark_aqua>] [<role>] <red><author> <dark_gray>» <white><message>"
   chat-role-ignore-list: ["Don't show me", "Misc role"]
   activity: "koolfreedom.eu.org"
   guild-id: ""

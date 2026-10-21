@@ -1,10 +1,12 @@
 package me.gamingto12.discord.listener;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import org.jspecify.annotations.NonNull;
 
@@ -16,6 +18,8 @@ import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.format.NamedTextColor;
 
 public class MessageListener extends ListenerAdapter
@@ -135,11 +139,12 @@ public class MessageListener extends ListenerAdapter
         var attachments = event.getMessage().getAttachments();
         if (content.isBlank() && attachments.isEmpty()) return;
 
-        var member = event.getMember();
+        Member member = event.getMember();
         String author = member == null ? event.getAuthor().getName() : member.getEffectiveName();
+        Component roleComponent = Component.empty();
         if (member != null)
         {
-            var ignoredRoles = plugin.getConfig().getStringList("discord.chat-role-ignore-list").stream()
+            List<String> ignoredRoles = plugin.getConfig().getStringList("discord.chat-role-ignore-list").stream()
                 .map(role -> role.toLowerCase(Locale.ROOT))
                 .toList();
             var topRole = member.getRoles().stream()
@@ -148,7 +153,12 @@ public class MessageListener extends ListenerAdapter
                     && !ignoredRoles.contains(role.getId()))
                 .max(Comparator.comparingInt(Role::getPosition));
             if (topRole.isPresent())
-                author = "[" + topRole.get().getName() + "] " + author;
+            {
+                Role role = topRole.get();
+                roleComponent = Component.text(role.getName());
+                if (role.getColor() != null)
+                    roleComponent = roleComponent.color(TextColor.color(role.getColor().getRGB() & 0xFFFFFF));
+            }
         }
 
         Component message = replaceMediaUrls(content);
@@ -161,7 +171,8 @@ public class MessageListener extends ListenerAdapter
             hasContent = true;
         }
 
-        plugin.getDiscordChatListener().broadcastDiscordMessage(author, message);
+        plugin.getDiscordChatListener().broadcastDiscordMessage(
+            Component.text(author), roleComponent, message);
     }
 
     private Component replaceMediaUrls(String content)

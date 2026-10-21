@@ -53,11 +53,12 @@ public class ChatListener implements Listener
         sendToDiscord("[Death] " + escapeDiscord(deathMessage));
     }
 
-    public void broadcastDiscordMessage(String author, Component message)
+    public void broadcastDiscordMessage(Component author, Component role, Component message)
     {
         var component = plugin.mmDeserialize(
                 plugin.getConfig().getString("discord.format"),
-                Placeholder.unparsed("author", author),
+                Placeholder.component("author", author),
+                Placeholder.component("role", role),
                 Placeholder.component("message", message));
         plugin.getServer().getScheduler().runTask(plugin, () -> plugin.getServer().broadcast(component));
     }

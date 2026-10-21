@@ -1,0 +1,70 @@
+name: Build and publish Hexalon
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: publish-hexalon-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Hexalon
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Create build version
+        id: version
+        shell: bash
+        run: |
+          base_version="$(awk -F= '$1 == "version" { print $2; exit }' gradle.properties)"
+          if [[ ! "$base_version" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
+            echo "Invalid version in gradle.properties: $base_version" >&2
+            exit 1
+          fi
+          echo "value=${base_version}.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+
+      - name: Build plugin
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+        run: ./gradlew --no-daemon clean shadowJar -Pversion="$VERSION"
+
+      - name: Check out website
+        uses: actions/checkout@v4
+        with:
+          repository: gamingto12/gamingto12.github.io
+          token: ${{ secrets.WEBSITE_PUBLISH_TOKEN }}
+          path: website
+
+      - name: Publish plugin JAR and version
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+        shell: bash
+        run: |
+          cp build/libs/Hexalon.jar website/Hexalon.jar
+          printf '%s\n' "$VERSION" > website/hexalon
+          git -C website config user.name 'github-actions[bot]'
+          git -C website config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -C website add Hexalon.jar hexalon
+          if git -C website diff --cached --quiet; then
+            echo 'Website already has this plugin build.'
+            exit 0
+          fi
+          git -C website commit -m "Publish Hexalon ${VERSION}"
+          git -C website push
