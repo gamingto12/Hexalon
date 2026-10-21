@@ -1,11 +1,11 @@
 package me.gamingto12.minecraft.utilities;
 
-import me.gamingto12.Hexalon;
-import lombok.Getter;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+
+import lombok.Getter;
+import me.gamingto12.Hexalon;
 
 @Getter
 public class BuildProperties extends Properties
@@ -21,7 +21,8 @@ public class BuildProperties extends Properties
 
         try (InputStream in = Hexalon.class.getClassLoader().getResourceAsStream("build.properties"))
         {
-            load(in);
+            if (in != null)
+                load(in);
         }
         catch (IOException ignored)
         {
