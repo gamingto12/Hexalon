@@ -1,8 +1,11 @@
 package me.gamingto12.discord.listener;
 
+import java.util.Comparator;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.dv8tion.jda.api.entities.Role;
 import org.jspecify.annotations.NonNull;
 
 import me.gamingto12.Hexalon;
@@ -36,6 +39,7 @@ public class MessageListener extends ListenerAdapter
     @Override
     public void onReady(@NonNull ReadyEvent event)
     {
+        plugin.getConsoleLogger().start();
         var channel = plugin.getDiscordBot().getChatChannel();
         if (channel != null)
         {
@@ -55,12 +59,11 @@ public class MessageListener extends ListenerAdapter
         if (!isEligibleMessage(event)) return;
 
         String content = event.getMessage().getContentRaw();
-        String prefix = plugin.getConfig().getString("discord.prefix", "!");
         String channelId = event.getChannel().getId();
         String chatChannelId = plugin.getConfig().getString("discord.channels.chat-id", "").trim();
         String consoleChannelId = plugin.getConfig().getString("discord.channels.console-id", "").trim();
 
-        if (handleConsoleMessage(event, content, prefix, channelId, consoleChannelId)) return;
+        if (handleConsoleMessage(event, content, channelId, consoleChannelId)) return;
         if (!channelId.equals(chatChannelId)) return;
 
         broadcastChatMessage(event, content);
@@ -74,11 +77,10 @@ public class MessageListener extends ListenerAdapter
                 && event.getGuild().getId().equals(plugin.getConfig().getString("discord.guild-id", ""));
     }
 
-    private boolean handleConsoleMessage(MessageReceivedEvent event, String content, String prefix,
+    private boolean handleConsoleMessage(MessageReceivedEvent event, String content,
                                          String channelId, String consoleChannelId)
     {
-        if (!channelId.equals(consoleChannelId) || content.isBlank()
-                || (!prefix.isBlank() && content.startsWith(prefix))) return false;
+        if (!channelId.equals(consoleChannelId) || content.isBlank()) return false;
 
         ConsoleCommandService.Validation validation = consoleCommands.validate(content);
         if (!validation.isAccepted())
@@ -98,7 +100,9 @@ public class MessageListener extends ListenerAdapter
             }
             else
             {
-                sendConsoleResult(event, command, result.accepted());
+                if (!result.accepted())
+                    event.getChannel().sendMessage("The server rejected that command.")
+                            .queue(null, error -> plugin.getSLF4JLogger().warn("Could not send console command result to Discord", error));
             }
         });
         return true;
@@ -126,16 +130,6 @@ public class MessageListener extends ListenerAdapter
                 .build()).queue();
     }
 
-    private void sendConsoleResult(MessageReceivedEvent event, String command, boolean accepted)
-    {
-        event.getChannel().asTextChannel().sendMessageEmbeds(new EmbedBuilder()
-                .setTitle(accepted ? "Command dispatched" : "Command rejected")
-                .setDescription("`" + command + "`")
-                .setColor(accepted ? 0x22C55E : 0xD64545)
-                .build()).queue(null, error ->
-                plugin.getSLF4JLogger().warn("Could not send console command result to Discord", error));
-    }
-
     private void broadcastChatMessage(MessageReceivedEvent event, String content)
     {
         var attachments = event.getMessage().getAttachments();
@@ -143,6 +137,19 @@ public class MessageListener extends ListenerAdapter
 
         var member = event.getMember();
         String author = member == null ? event.getAuthor().getName() : member.getEffectiveName();
+        if (member != null)
+        {
+            var ignoredRoles = plugin.getConfig().getStringList("discord.chat-role-ignore-list").stream()
+                .map(role -> role.toLowerCase(Locale.ROOT))
+                .toList();
+            var topRole = member.getRoles().stream()
+                .filter(role -> !role.isPublicRole())
+                .filter(role -> !ignoredRoles.contains(role.getName().toLowerCase(Locale.ROOT))
+                    && !ignoredRoles.contains(role.getId()))
+                .max(Comparator.comparingInt(Role::getPosition));
+            if (topRole.isPresent())
+                author = "[" + topRole.get().getName() + "] " + author;
+        }
 
         Component message = replaceMediaUrls(content);
         boolean hasContent = !content.isBlank();

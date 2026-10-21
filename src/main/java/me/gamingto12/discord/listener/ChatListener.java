@@ -1,9 +1,5 @@
 package me.gamingto12.discord.listener;
 
-import java.text.Normalizer;
-import java.util.List;
-import java.util.Locale;
-
 import org.bukkit.GameRules;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -22,8 +18,6 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 public class ChatListener implements Listener
 {
     private final Hexalon plugin;
-    private volatile List<String> blockedTerms;
-
     public ChatListener(Hexalon plugin)
     {
         this.plugin = plugin;
@@ -76,11 +70,6 @@ public class ChatListener implements Listener
             channel.sendMessage(message).queue(null, error ->
                     plugin.getSLF4JLogger().warn("Failed to send an in-game message to Discord", error));
         }
-    }
-
-    private static String normalize(String text)
-    {
-        return Normalizer.normalize(text, Normalizer.Form.NFKC).toLowerCase(Locale.ROOT);
     }
 
     private String escapeDiscord(String text)

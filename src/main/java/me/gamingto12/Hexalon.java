@@ -1,5 +1,6 @@
 package me.gamingto12;
 
+import java.io.File;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -9,7 +10,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import lombok.Getter;
-import me.gamingto12.discord.ConsoleLogger;
+import me.gamingto12.discord.console.ConsoleLogger;
 import me.gamingto12.discord.DiscordBot;
 import me.gamingto12.discord.command.DiscordSlashCommandManager;
 import me.gamingto12.discord.commands.AdminConsoleSlashCommand;
@@ -42,6 +43,11 @@ public class Hexalon extends JavaPlugin
     public Component mmDeserialize(String message, TagResolver... placeholders)
     {
         return MINI_MESSAGE.deserialize(message, placeholders);
+    }
+
+    public File getPluginFile()
+    {
+        return getFile();
     }
 
     @Override
@@ -95,7 +101,6 @@ public class Hexalon extends JavaPlugin
     {
         this.discordBot = new DiscordBot(this);
         this.consoleLogger = new ConsoleLogger(this, discordBot);
-        this.consoleLogger.start();
 
         this.slashCommandManager = new DiscordSlashCommandManager(this);
         registerDiscordSlashCommands();

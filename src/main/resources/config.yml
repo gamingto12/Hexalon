@@ -13,11 +13,12 @@
 # discord.channels = The channel IDs for the bot to send messages to
 # discord.adminRoleIds = The list of role IDs to use the AdminConsole command
 # discord.console = Enable/Disable console forwarding
-# discord.prefix = The prefix for executing commands
+# discord.chat-role-ignore-list = Discord role names or IDs to omit from the Minecraft chat format
 # discord.invite = Your server invite link
 discord:
   token: ""
   format: "<dark_gray>[<dark_aqua>Discord</dark_aqua>] <red><author> <dark_gray>» <white><message>"
+  chat-role-ignore-list: ["Don't show me", "Misc role"]
   activity: "koolfreedom.eu.org"
   guild-id: ""
   channels:
@@ -29,9 +30,11 @@ discord:
   console:
     enabled: false
     disallowed-commands: ["op", "deop", "?", "execute"]
-  prefix: "!"
   invite:
 
 # The address to your server, this is used to send an embed when someone asks "what is the ip"
 server:
   address: 127.0.0.1
+
+updater:
+  jar-url: "https://gamingto12.me/hexalon.jar"
