@@ -31,7 +31,7 @@ public class Hexalon extends JavaPlugin
 {
     @Getter
     private static Hexalon instance;
-    private BuildProperties buildMeta;
+    private final BuildProperties buildMeta = new BuildProperties();
 
     private DiscordSlashCommandManager slashCommandManager;
     private ConsoleLogger consoleLogger;
@@ -54,7 +54,6 @@ public class Hexalon extends JavaPlugin
     public void onLoad()
     {
         instance = this;
-        buildMeta = new BuildProperties();
     }
 
     @Override

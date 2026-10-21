@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.jar.JarFile;
 
 import me.gamingto12.Hexalon;
@@ -24,12 +25,14 @@ public final class UpdateChecker
     private static final URI DEFAULT_UPDATE_JAR_URI = URI.create("https://gamingto12.me/hexalon.jar");
     private static final URI FALLBACK_UPDATE_JAR_URI = URI.create(
             "https://github.com/gamingto12/Hexalon/releases/latest/download/Hexalon.jar");
+    private static final long CHECK_INTERVAL_TICKS = 60L * 60 * 20;
     private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(5))
             .followRedirects(HttpClient.Redirect.NORMAL)
             .build();
 
     private final Hexalon plugin;
+    private final AtomicBoolean checkInProgress = new AtomicBoolean();
 
     public UpdateChecker(Hexalon plugin)
     {
@@ -38,7 +41,24 @@ public final class UpdateChecker
 
     public void checkForUpdates()
     {
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, this::fetchAndCompare);
+        var scheduler = plugin.getServer().getScheduler();
+        scheduler.runTaskAsynchronously(plugin, this::runCheck);
+        scheduler.runTaskTimerAsynchronously(plugin, this::runCheck,
+                CHECK_INTERVAL_TICKS, CHECK_INTERVAL_TICKS);
+    }
+
+    private void runCheck()
+    {
+        if (!checkInProgress.compareAndSet(false, true))
+            return;
+        try
+        {
+            fetchAndCompare();
+        }
+        finally
+        {
+            checkInProgress.set(false);
+        }
     }
 
     private void fetchAndCompare()
