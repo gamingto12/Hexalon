@@ -3,6 +3,8 @@ package me.gamingto12.minecraft.utilities;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 import lombok.Getter;
 import me.gamingto12.Hexalon;
@@ -19,15 +21,24 @@ public class BuildProperties extends Properties
     {
         super();
 
-        try (InputStream in = plugin.getResource("build.properties"))
+        try (JarFile pluginJar = new JarFile(plugin.getPluginFile()))
         {
-            if (in != null)
-                load(in);
+            JarEntry entry = pluginJar.getJarEntry("build.properties");
+            if (entry == null)
+                plugin.getSLF4JLogger().warn("Could not find build.properties in {}; using plugin metadata defaults.",
+                        plugin.getPluginFile());
             else
-                plugin.getSLF4JLogger().warn("Could not find build.properties; using plugin metadata defaults.");
+            {
+                try (InputStream in = pluginJar.getInputStream(entry))
+                {
+                    load(in);
+                }
+            }
         }
-        catch (IOException ignored)
+        catch (IOException error)
         {
+            plugin.getSLF4JLogger().warn("Could not read build.properties from {}; using plugin metadata defaults: {}",
+                    plugin.getPluginFile(), error.getMessage());
         }
 
         author = getProperty("buildAuthor", "unknown");
