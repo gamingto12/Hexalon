@@ -37,4 +37,4 @@ server:
   address: 127.0.0.1
 
 updater:
-  jar-url: "https://gamingto12.me/hexalon.jar"
+  jar-url: "https://gamingto12.me/Hexalon.jar"

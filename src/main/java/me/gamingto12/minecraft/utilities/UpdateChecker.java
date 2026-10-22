@@ -22,8 +22,9 @@ import me.gamingto12.Hexalon;
 public final class UpdateChecker
 {
     private static final URI VERSION_URI = URI.create("https://gamingto12.me/hexalon");
-    private static final URI DEFAULT_UPDATE_JAR_URI = URI.create("https://gamingto12.me/hexalon.jar");
-    private static final URI FALLBACK_UPDATE_JAR_URI = URI.create(
+    private static final URI DEFAULT_UPDATE_JAR_URI = URI.create("https://gamingto12.me/Hexalon.jar");
+    private static final URI WEBSITE_UPDATE_JAR_URI = URI.create("https://gamingto12.me/Hexalon.jar");
+    private static final URI GITHUB_UPDATE_JAR_URI = URI.create(
             "https://github.com/gamingto12/Hexalon/releases/latest/download/Hexalon.jar");
     private static final long CHECK_INTERVAL_TICKS = 60L * 60 * 20;
     private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
@@ -134,8 +135,10 @@ public final class UpdateChecker
             {
                 plugin.getSLF4JLogger().warn("Invalid updater.jar-url '{}'; using the release fallback.", configuredUrl);
             }
-            if (!candidates.contains(FALLBACK_UPDATE_JAR_URI))
-                candidates.add(FALLBACK_UPDATE_JAR_URI);
+            if (!candidates.contains(WEBSITE_UPDATE_JAR_URI))
+                candidates.add(WEBSITE_UPDATE_JAR_URI);
+            if (!candidates.contains(GITHUB_UPDATE_JAR_URI))
+                candidates.add(GITHUB_UPDATE_JAR_URI);
 
             IOException lastFailure = null;
             boolean downloaded = false;
