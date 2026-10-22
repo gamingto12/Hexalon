@@ -23,5 +23,4 @@ Thumbs.db
 
 # Project specific
 build-number.properties
-/src/main/resources/build.properties
 /*.sh
